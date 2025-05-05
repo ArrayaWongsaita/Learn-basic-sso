@@ -3,23 +3,28 @@ import { AUTH_CONFIG, generateRandomState } from '../config/auth.config';
 // ตรวจสอบว่ามีเซสชั่นที่ IdP หรือไม่
 export const checkIdpSession = async () => {
   try {
-    console.log('Checking session with IdP:', AUTH_CONFIG.IDP_URL);
+    // console.log('Checking session with IdP:', AUTH_CONFIG.IDP_URL);
 
-    const response = await fetch(`${AUTH_CONFIG.IDP_URL}/check-session`, {
-      credentials: 'include', // สำคัญมากสำหรับการส่ง cookies
-      headers: {
-        Accept: 'application/json',
-      },
-    });
+    // const response = await fetch(`${AUTH_CONFIG.IDP_URL}/check-session`, {
+    //   credentials: 'include', // สำคัญมากสำหรับการส่ง cookies
+    //   headers: {
+    //     Accept: 'application/json',
+    //   },
+    // });
 
-    console.log('Session check response status:', response.status);
+    // console.log('Session check response status:', response.status);
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Session check result:', data);
-      return data;
-    }
-    return { active: false };
+    // if (response.ok) {
+    //   const data = await response.json();
+    //   console.log('Session check result:', data);
+    //   return data;
+    // }
+    // return { active: false };
+    window.location.href = `${AUTH_CONFIG.IDP_URL}/authorize?client_id=${
+      AUTH_CONFIG.CLIENT_ID
+    }&redirect_uri=${
+      AUTH_CONFIG.REDIRECT_URI
+    }&response_type=code&state=${generateRandomState()}`;
   } catch (error) {
     console.error('Error checking IdP session:', error);
     return { active: false };

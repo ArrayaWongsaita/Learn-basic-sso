@@ -5,14 +5,19 @@ import { AUTH_CONFIG, generateRandomState } from '../config/auth.config';
  */
 export const checkIdpSession = async () => {
   try {
-    const response = await fetch(`${AUTH_CONFIG.IDP_URL}/check-session`, {
-      credentials: 'include', // This sends cookies with the request
-    });
+    // const response = await fetch(`${AUTH_CONFIG.IDP_URL}/check-session`, {
+    //   credentials: 'include', // This sends cookies with the request
+    // });
 
-    if (response.ok) {
-      return await response.json();
-    }
-    return { active: false };
+    // if (response.ok) {
+    //   return await response.json();
+    // }
+    // return { active: false };
+    window.location.href = `${AUTH_CONFIG.IDP_URL}/authorize?client_id=${
+      AUTH_CONFIG.CLIENT_ID
+    }&redirect_uri=${
+      AUTH_CONFIG.REDIRECT_URI
+    }&response_type=code&state=${generateRandomState()}`;
   } catch (error) {
     console.error('Error checking IdP session:', error);
     return { active: false };
