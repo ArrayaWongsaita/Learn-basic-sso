@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const error = urlParams.get('error');
+    const logout = urlParams.get('logout');
 
     if (code) {
       // แลกเปลี่ยน code เพื่อรับ token
@@ -54,9 +55,11 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } else {
-        if (error) {
+        if (error || logout) {
           // ถ้ามี error จาก IdP ให้แสดงข้อความ
-          console.error('Error from IdP:', error);
+          console.log('Error from IdP:', error);
+          // ถ้ามี logout จาก IdP ให้แสดงข้อความ
+          console.log('Logged out from IdP:', logout);
         } else {
           // ไม่มี token และไม่มี code ให้ตรวจสอบเซสชั่นที่ IdP
           checkIdpSession();
@@ -77,9 +80,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await logoutService();
-    setUser(null);
-    window.location.href = window.location.origin;
+    // setUser(null);
+    logoutService();
+    // window.location.href = window.location.origin;
   };
 
   return (

@@ -80,23 +80,13 @@ export const initiateLogin = () => {
 // เริ่มกระบวนการล็อกเอาท์
 export const logout = async () => {
   try {
-    const token = localStorage.getItem('access_token');
     localStorage.removeItem('access_token');
 
-    const redirectUri = encodeURIComponent(AUTH_CONFIG.REDIRECT_URI);
-    const logoutUrl = `${AUTH_CONFIG.IDP_URL}/logout?redirect_uri=${redirectUri}`;
-
-    if (token) {
-      await fetch(logoutUrl, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-    }
-
-    return true;
+    window.location.href = `${AUTH_CONFIG.IDP_URL}/logout?client_id=${
+      AUTH_CONFIG.CLIENT_ID
+    }&redirect_uri=${
+      AUTH_CONFIG.REDIRECT_URI
+    }&response_type=code&state=${generateRandomState()}`;
   } catch (error) {
     console.error('Error during logout:', error);
     return false;

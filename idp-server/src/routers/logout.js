@@ -55,14 +55,11 @@ router.get('/', (req, res) => {
         sameSite: 'lax',
       });
 
-      // ส่ง CORS headers
-      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-      res.header('Access-Control-Allow-Credentials', 'true');
-
       // ทำ redirect
       if (redirect_uri) {
-        console.log('Redirecting to:', redirect_uri);
-        return res.redirect(redirect_uri);
+        const redirect = redirect_uri + '?logout=true';
+        console.log('Redirecting to:', redirect);
+        return res.redirect(redirect);
       } else {
         return res.json({ success: true, message: 'Logged out successfully' });
       }
@@ -75,8 +72,9 @@ router.get('/', (req, res) => {
     res.clearCookie('sessionId');
 
     if (redirect_uri) {
-      console.log('No session, redirecting to:', redirect_uri);
-      return res.redirect(redirect_uri);
+      const redirect = redirect_uri + '?logout=true';
+      console.log('No session, redirecting to:', redirect);
+      return res.redirect(redirect);
     } else {
       return res.json({ success: true, message: 'No active session' });
     }

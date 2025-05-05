@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const error = urlParams.get('error');
+    const logout = urlParams.get('logout');
 
     if (code) {
       // Exchange code for token
@@ -56,9 +57,11 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } else {
-        if (error) {
+        if (error || logout) {
           // ถ้ามี error จาก IdP ให้แสดงข้อความ
           console.log('Error from IdP:', error);
+          // ถ้ามี logout จาก IdP ให้แสดงข้อความ
+          console.log('Logged out from IdP:', logout);
         } else {
           // ไม่มี token และไม่มี code ให้ตรวจสอบเซสชั่นที่ IdP
           checkIdpSession();
