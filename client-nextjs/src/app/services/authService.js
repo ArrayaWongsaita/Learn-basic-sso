@@ -17,7 +17,7 @@ export const checkIdpSession = async () => {
       AUTH_CONFIG.CLIENT_ID
     }&redirect_uri=${
       AUTH_CONFIG.REDIRECT_URI
-    }&response_type=code&state=${generateRandomState()}`;
+    }&response_type=code&state=${generateRandomState()}&prompt=check_session`;
   } catch (error) {
     console.error('Error checking IdP session:', error);
     return { active: false };

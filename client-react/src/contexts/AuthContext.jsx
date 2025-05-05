@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
     // ตรวจสอบว่ามี code จาก IdP หรือไม่
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
+    const error = urlParams.get('error');
 
     if (code) {
       // แลกเปลี่ยน code เพื่อรับ token
@@ -53,12 +54,17 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } else {
-        // ตรวจสอบว่ามีเซสชั่นที่ IdP หรือไม่
-        const sessionData = await checkIdpSession();
-        if (sessionData?.active) {
-          // มีเซสชั่นที่ IdP แต่ไม่มี token ที่ client
-          login();
-          return;
+        if (error) {
+          // ถ้ามี error จาก IdP ให้แสดงข้อความ
+          console.error('Error from IdP:', error);
+        } else {
+          // ไม่มี token และไม่มี code ให้ตรวจสอบเซสชั่นที่ IdP
+          checkIdpSession();
+          // if (sessionData?.active) {
+          //   // มีเซสชั่นที่ IdP แต่ไม่มี token ที่ client
+          //   login();
+          //   return;
+          // }
         }
       }
     }

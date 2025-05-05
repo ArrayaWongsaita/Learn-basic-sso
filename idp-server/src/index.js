@@ -12,7 +12,6 @@ const customSession = require('./middleware/customSession');
 const authorizeRoute = require('./routers/authorize');
 const tokenRoute = require('./routers/token');
 const loginRoute = require('./routers/login');
-const sessionRoute = require('./routers/session');
 const logoutRoute = require('./routers/logout');
 const userinfoRoute = require('./routers/userinfo');
 const { getUserById } = require('./data/mockDb');
@@ -105,7 +104,6 @@ app.use(
 app.use('/authorize', authorizeRoute);
 app.use('/token', tokenRoute);
 app.use('/login', loginRoute);
-app.use('/check-session', sessionRoute);
 app.use('/logout', logoutRoute);
 app.use('/userinfo', userinfoRoute);
 

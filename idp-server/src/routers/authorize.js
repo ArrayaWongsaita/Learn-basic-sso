@@ -14,6 +14,9 @@ router.get('/', (req, res) => {
         `${redirect_uri}?error=login_required&state=${state}`
       );
     }
+    if (prompt === 'check_session') {
+      return res.redirect(`${redirect_uri}?error=check_session&state=${state}`);
+    }
 
     // บันทึก URL ก่อนทำ redirect
     req.session.returnTo = req.originalUrl;

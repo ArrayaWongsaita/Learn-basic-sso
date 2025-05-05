@@ -72,11 +72,7 @@ router.get('/', (req, res) => {
     console.log('No session found');
 
     // ลบ cookie เพื่อความแน่ใจ
-    res.clearCookie('sessionId', {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-    });
+    res.clearCookie('sessionId');
 
     if (redirect_uri) {
       console.log('No session, redirecting to:', redirect_uri);

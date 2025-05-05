@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
     // Check if we're returning from IdP with a code
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
+    const error = urlParams.get('error');
 
     if (code) {
       // Exchange code for token
@@ -55,12 +56,17 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } else {
-        // No token, check if user has an active session with IdP
-        const sessionData = await checkIdpSession();
-        if (sessionData?.active) {
-          // User has an active session with IdP
-          login();
-          return;
+        if (error) {
+          // ถ้ามี error จาก IdP ให้แสดงข้อความ
+          console.log('Error from IdP:', error);
+        } else {
+          // ไม่มี token และไม่มี code ให้ตรวจสอบเซสชั่นที่ IdP
+          checkIdpSession();
+          // if (sessionData?.active) {
+          //   // มีเซสชั่นที่ IdP แต่ไม่มี token ที่ client
+          //   login();
+          //   return;
+          // }
         }
       }
     }
