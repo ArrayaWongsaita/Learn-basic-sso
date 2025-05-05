@@ -1,0 +1,97 @@
+services:
+  # Identity Provider Server
+  idp-server:
+    build:
+      context: ./idp-server
+      dockerfile: Dockerfile
+    container_name: idp-server
+    ports:
+      - "${IDP_PORT:-4000}:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - JWT_SECRET=${JWT_SECRET:-docker-dev-secret}
+    volumes:
+      - ./idp-server:/app
+      - /app/node_modules
+    networks:
+      - sso-network
+    restart: unless-stopped
+
+  # React Client One
+  client-react-one:
+    build:
+      context: ./client-react
+      dockerfile: Dockerfile
+      args:
+        - VITE_IDP_URL=${IDP_URL:-http://localhost:4000}
+        - VITE_CLIENT_ID=client-react-one
+    container_name: client-react-one
+    ports:
+      - "3002:80"
+    depends_on:
+      - idp-server
+    environment:
+      - NODE_ENV=production
+    networks:
+      - sso-network
+    restart: unless-stopped
+
+  # React Client Two
+  client-react-two:
+    build:
+      context: ./client-react
+      dockerfile: Dockerfile
+      args:
+        - VITE_IDP_URL=${IDP_URL:-http://localhost:4000}
+        - VITE_CLIENT_ID=client-react-two
+    container_name: client-react-two
+    ports:
+      - "3003:80"
+    depends_on:
+      - idp-server
+    environment:
+      - NODE_ENV=production
+    networks:
+      - sso-network
+    restart: unless-stopped
+
+  # Next.js Client One
+  client-nextjs-one:
+    build:
+      context: ./client-nextjs
+      dockerfile: Dockerfile
+    container_name: client-nextjs-one
+    ports:
+      - "3000:3001"
+    depends_on:
+      - idp-server
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_IDP_URL=${IDP_URL:-http://localhost:4000}
+      - NEXT_PUBLIC_CLIENT_ID=client-nextjs-one
+    networks:
+      - sso-network
+    restart: unless-stopped
+
+  # Next.js Client Two
+  client-nextjs-two:
+    build:
+      context: ./client-nextjs
+      dockerfile: Dockerfile
+    container_name: client-nextjs-two
+    ports:
+      - "3001:3001"
+    depends_on:
+      - idp-server
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_IDP_URL=${IDP_URL:-http://localhost:4000}
+      - NEXT_PUBLIC_CLIENT_ID=client-nextjs-two
+    networks:
+      - sso-network
+    restart: unless-stopped
+
+networks:
+  sso-network:
+    driver: bridge
