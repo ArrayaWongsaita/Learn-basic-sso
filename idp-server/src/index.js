@@ -81,21 +81,6 @@ app.use('/check-session', sessionRoute);
 app.use('/logout', logoutRoute);
 app.use('/userinfo', userinfoRoute);
 
-// ถ้าใช้ Express โดยตรงกับ HTTPS
-if (process.env.NODE_ENV === 'production') {
-  const fs = require('fs');
-  const https = require('https');
-
-  const options = {
-    key: fs.readFileSync('/path/to/private-key.pem'),
-    cert: fs.readFileSync('/path/to/certificate.pem'),
-  };
-
-  https.createServer(options, app).listen(PORT, () => {
-    console.log(`IdP Server running at https://your-domain.com:${PORT}`);
-  });
-} else {
-  app.listen(PORT, () => {
-    console.log(`IdP Server running at http://localhost:${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`IdP Server running at port : ${PORT}`);
+});
