@@ -1,0 +1,59 @@
+.logout-button {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white
+  bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition;
+  position: relative;
+}
+
+.logout-button:active {
+  @apply transform translate-y-px;
+}
+
+.logout-button-loading {
+  @apply opacity-75 cursor-not-allowed;
+}
+
+.logout-button-loading::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  right: 0.5rem;
+  animation: spin 1s linear infinite;
+}
+
+.logout-modal {
+  @apply fixed inset-0 overflow-y-auto z-50 flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.logout-modal-content {
+  @apply bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-auto;
+}
+
+.logout-modal-header {
+  @apply text-xl font-semibold text-gray-900 mb-4;
+}
+
+.logout-modal-body {
+  @apply mb-6 text-gray-600;
+}
+
+.logout-modal-footer {
+  @apply flex justify-end space-x-3;
+}
+
+.logout-modal-cancel {
+  @apply px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition;
+}
+
+.logout-modal-confirm {
+  @apply px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
