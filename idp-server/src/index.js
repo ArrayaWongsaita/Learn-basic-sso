@@ -33,21 +33,49 @@ const allowedOrigins = allowedOriginsString
   ? allowedOriginsString.split(',').map((origin) => origin.trim())
   : [];
 
+// เพิ่มโดเมนของ IdP เองถ้ามีการกำหนดไว้
+if (process.env.IDP_DOMAIN) {
+  allowedOrigins.push(process.env.IDP_DOMAIN);
+  console.log(
+    `Added self-domain to allowed origins: ${process.env.IDP_DOMAIN}`
+  );
+}
+
+// ถ้าไม่มี allowed origins ใน production mode ให้แสดง warning
+if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 0) {
+  console.warn('WARNING: Running in production with no allowed CORS origins!');
+}
+
+// Debug information
+console.log('Current environment:', process.env.NODE_ENV || 'not set');
 console.log('Allowed CORS origins:', allowedOrigins);
 
 // Update CORS configuration to handle credentials properly
 app.use(
   cors({
     origin: function (origin, callback) {
-      // อนุญาตให้เรียกจาก origins ที่กำหนดใน env หรือไม่มี origin (เช่น Postman)
-      if (!origin || allowedOrigins.includes(origin)) {
+      console.log('Request from origin:', origin);
+
+      // ถ้าไม่มี origin specified หรือเป็น development mode ให้อนุญาตทั้งหมด
+      if (
+        !origin ||
+        process.env.NODE_ENV !== 'production' ||
+        allowedOrigins.length === 0
+      ) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log(`CORS blocked: ${origin} is not allowed`);
-        callback(new Error('Not allowed by CORS'));
+        console.log(
+          `CORS blocked: ${origin} is not in allowed list:`,
+          allowedOrigins
+        );
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
       }
     },
-    credentials: true,
+    credentials: true, // สำคัญมากสำหรับการส่ง cookies
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   })
@@ -63,13 +91,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // ใช้ customSession แทน express-session
 app.use(
   customSession({
-    secret: 'my-session-secret',
+    secret: process.env.SESSION_SECRET || 'my-session-secret',
     resave: false,
     saveUninitialized: true,
     cookie: {
       httpOnly: true,
-      sameSite: 'lax',
-      // ในระบบจริง ถ้าใช้ HTTPS ควรตั้งค่า secure: true
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production', // จำเป็นต้องเป็น true เมื่อ sameSite เป็น none
     },
   })
 );

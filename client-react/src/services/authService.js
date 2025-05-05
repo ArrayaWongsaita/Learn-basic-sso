@@ -3,12 +3,21 @@ import { AUTH_CONFIG, generateRandomState } from '../config/auth.config';
 // ตรวจสอบว่ามีเซสชั่นที่ IdP หรือไม่
 export const checkIdpSession = async () => {
   try {
+    console.log('Checking session with IdP:', AUTH_CONFIG.IDP_URL);
+
     const response = await fetch(`${AUTH_CONFIG.IDP_URL}/check-session`, {
-      credentials: 'include', // This sends cookies with the request
+      credentials: 'include', // สำคัญมากสำหรับการส่ง cookies
+      headers: {
+        Accept: 'application/json',
+      },
     });
 
+    console.log('Session check response status:', response.status);
+
     if (response.ok) {
-      return await response.json();
+      const data = await response.json();
+      console.log('Session check result:', data);
+      return data;
     }
     return { active: false };
   } catch (error) {

@@ -27,8 +27,8 @@ const customSession = (options = {}) => {
       httpOnly: options.cookie?.httpOnly !== false,
       maxAge: options.cookie?.maxAge || 24 * 60 * 60 * 1000, // 1 วัน
       path: options.cookie?.path || '/',
-      sameSite: options.cookie?.sameSite || 'none', // เปลี่ยนเป็น 'none' เพื่อให้ทำงานข้าม domain
-      secure: true, // ตั้งค่าเป็น true เสมอเมื่อใช้ HTTPS
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' สำหรับ cross-domain
+      secure: process.env.NODE_ENV === 'production' ? true : false, // จำเป็นต้องเป็น true เมื่อใช้ HTTPS
     },
     resave: options.resave || false,
     rolling: options.rolling || false,
@@ -110,6 +110,9 @@ const customSession = (options = {}) => {
       ]
         .filter(Boolean)
         .join('; ');
+
+      // Log cookie options เพื่อการ debug
+      console.log('Setting cookie with options:', cookieOptions);
 
       res.setHeader('Set-Cookie', cookieOptions);
 
