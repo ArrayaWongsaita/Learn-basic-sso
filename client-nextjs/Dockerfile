@@ -1,39 +1,40 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Base image
+FROM node:18-alpine
 
+# Create app directory
 WORKDIR /app
 
-# ติดตั้ง dependencies
+# Set npm configurations for better network reliability
+RUN npm config set registry https://registry.npmjs.org/ \
+  && npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 20000 \
+  && npm config set fetch-retry-maxtimeout 120000
+
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# คัดลอกโค้ดทั้งหมด
+# Copy source files
 COPY . .
 
-# สร้างไฟล์ .env.local สำหรับ build
-RUN echo "NEXT_PUBLIC_IDP_URL=http://localhost:4000" > .env.local
-RUN echo "NEXT_PUBLIC_CLIENT_ID=client-two" >> .env.local
+# Set environment variables from build args
+ARG NEXT_PUBLIC_IDP_URL
+ARG NEXT_PUBLIC_CLIENT_ID
+ARG NEXT_PUBLIC_REDIRECT_URI
 
-# Build แอพ
-RUN npm run build
-
-# Production stage
-FROM node:18-alpine AS runner
-
-WORKDIR /app
-
-# ตั้งค่า environment เป็น production
+ENV NEXT_PUBLIC_IDP_URL=${NEXT_PUBLIC_IDP_URL}
+ENV NEXT_PUBLIC_CLIENT_ID=${NEXT_PUBLIC_CLIENT_ID}
+ENV NEXT_PUBLIC_REDIRECT_URI=${NEXT_PUBLIC_REDIRECT_URI}
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# คัดลอกไฟล์ที่จำเป็นจาก build stage
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.env.local ./.env.local
-COPY --from=builder /app/node_modules ./node_modules
+# Build the app
+RUN npm run build
 
-# เปิดพอร์ต 3001
+# Expose the port
 EXPOSE 3001
 
-# รัน Next.js
+# Start the app
 CMD ["npm", "start", "--", "-p", "3001"]

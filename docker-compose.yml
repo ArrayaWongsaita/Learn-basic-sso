@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # Identity Provider Server
   idp-server:
@@ -11,6 +13,11 @@ services:
       - NODE_ENV=development
       - PORT=4000
       - JWT_SECRET=${JWT_SECRET:-docker-dev-secret}
+      - SESSION_SECRET=${SESSION_SECRET:-session-dev-secret}
+      # เพิ่ม public URL ที่ IdP จะถูกเข้าถึงจากภายนอก
+      - IDP_DOMAIN=${IDP_DOMAIN:-http://localhost:4000}
+      # อนุญาต CORS จากทุก client
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
     volumes:
       - ./idp-server:/app
       - /app/node_modules
@@ -24,8 +31,11 @@ services:
       context: ./client-react
       dockerfile: Dockerfile
       args:
-        - VITE_IDP_URL=${IDP_URL:-http://localhost:4000}
+        # แก้ไขให้ใช้ public URL ของ IdP
+        - VITE_IDP_URL=${PUBLIC_IDP_URL:-http://localhost:4000}
         - VITE_CLIENT_ID=client-react-one
+        # เพิ่ม redirect URI ที่ถูกต้อง
+        - VITE_REDIRECT_URI=${PUBLIC_REACT_ONE_URL:-http://localhost:3002}
     container_name: client-react-one
     ports:
       - "3002:80"
@@ -43,8 +53,11 @@ services:
       context: ./client-react
       dockerfile: Dockerfile
       args:
-        - VITE_IDP_URL=${IDP_URL:-http://localhost:4000}
+        # แก้ไขให้ใช้ public URL ของ IdP
+        - VITE_IDP_URL=${PUBLIC_IDP_URL:-http://localhost:4000}
         - VITE_CLIENT_ID=client-react-two
+        # เพิ่ม redirect URI ที่ถูกต้อง
+        - VITE_REDIRECT_URI=${PUBLIC_REACT_TWO_URL:-http://localhost:3003}
     container_name: client-react-two
     ports:
       - "3003:80"
@@ -61,6 +74,10 @@ services:
     build:
       context: ./client-nextjs
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_IDP_URL=${PUBLIC_IDP_URL:-http://localhost:4000}
+        - NEXT_PUBLIC_CLIENT_ID=client-nextjs-one
+        - NEXT_PUBLIC_REDIRECT_URI=${PUBLIC_NEXTJS_ONE_URL:-http://localhost:3000}/auth/callback
     container_name: client-nextjs-one
     ports:
       - "3000:3001"
@@ -68,8 +85,6 @@ services:
       - idp-server
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_IDP_URL=${IDP_URL:-http://localhost:4000}
-      - NEXT_PUBLIC_CLIENT_ID=client-nextjs-one
     networks:
       - sso-network
     restart: unless-stopped
@@ -79,6 +94,10 @@ services:
     build:
       context: ./client-nextjs
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_IDP_URL=${PUBLIC_IDP_URL:-http://localhost:4000}
+        - NEXT_PUBLIC_CLIENT_ID=client-nextjs-two
+        - NEXT_PUBLIC_REDIRECT_URI=${PUBLIC_NEXTJS_TWO_URL:-http://localhost:3001}/auth/callback
     container_name: client-nextjs-two
     ports:
       - "3001:3001"
@@ -86,8 +105,6 @@ services:
       - idp-server
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_IDP_URL=${IDP_URL:-http://localhost:4000}
-      - NEXT_PUBLIC_CLIENT_ID=client-nextjs-two
     networks:
       - sso-network
     restart: unless-stopped

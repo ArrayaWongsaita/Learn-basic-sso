@@ -1,7 +1,5 @@
 # โครงการ Single Sign-On (SSO) แบบพื้นฐาน
 
-[![SSO System](https://mermaid.ink/img/pako:eNplksFuwjAMhl_Fyml7AO4bMGlS0bTTkHbYBYWTlI1BnCpJQYzyKHuWOU4LZSByk-3_-_cnTtyzVlrCU_a0lJScGcii2aqjptznakGBcmad0vKQc94aT8uzyrBT4i8DagLOcL-1-cvyVfQGlbYvPjozGWnTnl-a5rnrldO0G2kBLRMG_ba1BOs7GssjWz-s6z85LwwALr2GmzpLM4TOUwDTUBmn2PPUbHBn6dvs2ox8afKnYnzIfYwpnDzuIXDVR86rsdAeqTETR9XZESsqPunoFgYdSMsDm1ug2YAMLaSlDPhOvDtt0O7bvCPPWmbw3WekOSg2TRhDsqdtf3j34-_rkJ0UKz7EtXlv6CKLZ5Z4KxkM8i8W8GCVMsCdQE-ynOPiwkXGEl2NoeJJT9bQL3l7pkaVvkhWRvB-Bh85wYRlOnkab08D6-cpS9pOj9AIZd9T4CzIwuT_3oHXvNUylKHqhAmI_7Gc1Iur9Q8FzOiF?type=png)](https://mermaid.live/edit#pako:eNplksFuwjAMhl_Fyml7AO4bMGlS0bTTkHbYBYWTlI1BnCpJQYzyKHuWOU4LZSByk-3_-_cnTtyzVlrCU_a0lJScGcii2aqjptznakGBcmad0vKQc94aT8uzyrBT4i8DagLOcL-1-cvyVfQGlbYvPjozGWnTnl-a5rnrldO0G2kBLRMG_ba1BOs7GssjWz-s6z85LwwALr2GmzpLM4TOUwDTUBmn2PPUbHBn6dvs2ox8afKnYnzIfYwpnDzuIXDVR86rsdAeqTETR9XZESsqPunoFgYdSMsDm1ug2YAMLaSlDPhOvDtt0O7bvCPPWmbw3WekOSg2TRhDsqdtf3j34-_rkJ0UKz7EtXlv6CKLZ5Z4KxkM8i8W8GCVMsCdQE-ynOPiwkXGEl2NoeJJT9bQL3l7pkaVvkhWRvB-Bh85wYRlOnkab08D6-cpS9pOj9AIZd9T4CzIwuT_3oHXvNUylKHqhAmI_7Gc1Iur9Q8FzOiF)
-
 ## บทนำ
 
 Single Sign-On (SSO) เป็นกลไกการพิสูจน์ตัวตนที่ช่วยให้ผู้ใช้สามารถเข้าสู่ระบบครั้งเดียว แล้วเข้าถึงหลายระบบได้โดยไม่ต้องลงชื่อเข้าใช้ซ้ำ โครงการนี้แสดงการทำงานของ SSO แบบพื้นฐานโดยใช้ OAuth 2.0 Authorization Code Flow
@@ -42,19 +40,17 @@ sequenceDiagram
     participant IdP as Identity Provider
 
     User->>Client: เข้าสู่เว็บไซต์
-    Client->>IdP: ตรวจสอบ session (/check-session)
+    Client->>IdP: ตรวจสอบ session (/authorize?prompt=check_session)
 
     alt มี active session ที่ IdP
-        IdP->>Client: ตอบกลับว่า session active
-        Client->>IdP: ขอ authorization code (/authorize)
-        IdP->>Client: redirect พร้อม code
+        IdP->>Client: redirect กลับพร้อม authorization code
         Client->>IdP: แลกเปลี่ยน code เป็น token (/token)
         IdP->>Client: ส่ง access token กลับ
         Client->>IdP: ขอข้อมูลผู้ใช้ด้วย token (/userinfo)
         IdP->>Client: ส่งข้อมูลผู้ใช้
         Client->>User: แสดงข้อมูลผู้ใช้
     else ไม่มี session
-        IdP->>Client: ตอบกลับว่าไม่มี session
+        IdP->>Client: redirect กลับพร้อม error=check_session
         Client->>User: แสดงปุ่มเข้าสู่ระบบ
         User->>Client: คลิกปุ่มเข้าสู่ระบบ
         Client->>IdP: ขอ authorization (/authorize)
@@ -79,11 +75,11 @@ sequenceDiagram
 
     User->>Client: คลิกปุ่มออกจากระบบ
     Client->>Client: ลบ token จาก localStorage
-    Client->>IdP: ส่งคำขอ logout (/logout)
+    Client->>IdP: redirect ไปยัง logout endpoint (/logout)
     IdP->>IdP: เพิ่ม token เข้า blacklist
     IdP->>IdP: ลบ session
-    IdP->>Client: redirect กลับไปที่ client
-    Client->>User: แสดงหน้าล็อกอิน
+    IdP->>Client: redirect กลับไปที่ client พร้อม logout=true
+    Client->>User: แสดงหน้า Home
 ```
 
 ## รายละเอียดของแต่ละส่วน
@@ -94,14 +90,13 @@ IdP เป็นเซิร์ฟเวอร์ที่จัดการก�
 
 #### 1. Endpoints หลัก
 
-| Endpoint         | วิธี     | คำอธิบาย                                |
-| ---------------- | -------- | --------------------------------------- |
-| `/authorize`     | GET      | เริ่ม OAuth flow และให้ code แก่ client |
-| `/token`         | POST     | แลกเปลี่ยน code เป็น access token       |
-| `/userinfo`      | GET      | ส่งข้อมูลผู้ใช้ตาม token ที่ให้มา       |
-| `/check-session` | GET      | ตรวจสอบว่าผู้ใช้มี session อยู่หรือไม่  |
-| `/login`         | GET/POST | หน้าและการประมวลผลล็อกอิน               |
-| `/logout`        | GET      | ทำการออกจากระบบและเพิกถอน token         |
+| Endpoint     | วิธี     | คำอธิบาย                                |
+| ------------ | -------- | --------------------------------------- |
+| `/authorize` | GET      | เริ่ม OAuth flow และให้ code แก่ client |
+| `/token`     | POST     | แลกเปลี่ยน code เป็น access token       |
+| `/userinfo`  | GET      | ส่งข้อมูลผู้ใช้ตาม token ที่ให้มา       |
+| `/login`     | GET/POST | หน้าและการประมวลผลล็อกอิน               |
+| `/logout`    | GET      | ทำการออกจากระบบและเพิกถอน token         |
 
 #### 2. ระบบจัดการ Session
 
@@ -208,15 +203,3 @@ npm run dev
 3. การแลกเปลี่ยนข้อมูลระหว่าง Identity Provider และ Client Application
 
 การศึกษาโค้ดของโปรเจคนี้จะช่วยให้เข้าใจถึงกลไกการทำงานของ SSO และสามารถนำไปประยุกต์ใช้กับโปรเจคจริงต่อไป
-
----
-
-## อ้างอิงเพิ่มเติม
-
-- [OAuth 2.0 Authorization Framework](https://oauth.net/2/)
-- [OpenID Connect](https://openid.net/connect/)
-- [JWT (JSON Web Tokens)](https://jwt.io/)
-
-```
-
-```
